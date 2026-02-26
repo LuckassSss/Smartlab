@@ -16,6 +16,7 @@ public class Onboarding extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_onboarding);
+
     }
     public void onClick(View v){
         Intent intent = new Intent(Onboarding.this, LogInActivity.class);
