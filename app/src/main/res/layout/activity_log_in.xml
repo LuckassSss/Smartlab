@@ -5,6 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".LogInActivity"
-    android:background="@drawable/zastavka">
+    android:background="@drawable/zastavka"
+    android:onClick="onClick">
 
 </androidx.constraintlayout.widget.ConstraintLayout>

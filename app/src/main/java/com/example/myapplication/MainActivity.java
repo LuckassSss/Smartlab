@@ -21,14 +21,14 @@ public class MainActivity extends AppCompatActivity {
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
-                Intent intent = new Intent(MainActivity.this, Onboarding.class);
+                Intent intent = new Intent(MainActivity.this, MainMenu.class);
                 startActivity(intent);
             }
-        },10000);
+        },3000);
     }
 
     public void onClick(View v){
-        Intent intent = new Intent(MainActivity.this, Onboarding.class);
+        Intent intent = new Intent(MainActivity.this, MainMenu.class);
         startActivity(intent);
     }
 }
