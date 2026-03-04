@@ -2,6 +2,9 @@ package com.example.myapplication;
 
 import static okhttp3.RequestBody.create;
 
+import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.EditText;
@@ -10,6 +13,9 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.IOException;
 
@@ -24,8 +30,11 @@ import okhttp3.Response;
 import okhttp3.ResponseBody;
 
 public class MainMenu extends AppCompatActivity {
+    private SharedPreferences sharedPref;
 
-    private String tokenUserVinogradov = "";
+    //SharedPreferences sharedPref = getSharedPreferences("Bank", Context.MODE_PRIVATE);
+    //SharedPreferences.Editor editor = sharedPref.edit();
+    String responseData = "";
     EditText emailEditText;
     EditText nameEditText;
     EditText lastNameEditText;
@@ -40,6 +49,7 @@ public class MainMenu extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main_menu);
+        Toast.makeText(MainMenu.this,"Error",Toast.LENGTH_LONG);
 
         emailEditText = findViewById(R.id.editTextTextEmailAddress);
         nameEditText = findViewById(R.id.editTextTextName);
@@ -50,59 +60,73 @@ public class MainMenu extends AppCompatActivity {
         genderEditText = findViewById(R.id.editTextTextGender);
 
     }
-    public void callPostReg(View v){
+    public void callPostReg(View v) {
+        SharedPreferences.Editor editor = sharedPref.edit();
 
-            String email = emailEditText.getText().toString().trim();
-            String name = nameEditText.getText().toString();
-            String lastName = lastNameEditText.getText().toString();
-            String surname = surnameEditText.getText().toString();
-            String date = dateEditText.getText().toString();
-            String pass = passwordEditText.getText().toString();
-            String gender = genderEditText.getText().toString();
+        String email = emailEditText.getText().toString().trim();
+        String name = nameEditText.getText().toString();
+        String lastName = lastNameEditText.getText().toString();
+        String surname = surnameEditText.getText().toString();
+        String date = dateEditText.getText().toString();
+        String pass = passwordEditText.getText().toString();
+        String gender = genderEditText.getText().toString();
 
 
-            OkHttpClient client = new OkHttpClient();
-            MediaType JSON = MediaType.get("application/json; charset=utf-8");
-            RequestBody body = RequestBody.create(JSON, "{\n" +
-                    "  \"name\": \""+ name +"\",\n" +
-                    "  \"last_name\": \""+ lastName +"\",\n" +
-                    "  \"surname\": \""+ surname +"\",\n" +
-                    "  \"date_of_birth\": \""+ date +"\",\n" +
-                    "  \"sex\": \""+ gender +"\",\n" +
-                    "  \"email\": \""+ email + "\",\n" +
-                    "  \"password\": \""+ pass +"\"\n" +
-                    "}");
-            Request request = new Request.Builder()
-                    .url("http://192.168.1.43:8000/user/reg/")
-                    .post(body)
-                    .build();
+        OkHttpClient client = new OkHttpClient();
+        MediaType JSON = MediaType.get("application/json; charset=utf-8");
+        RequestBody body = RequestBody.create(JSON, "{\n" +
+                "  \"name\": \"" + name + "\",\n" +
+                "  \"last_name\": \"" + lastName + "\",\n" +
+                "  \"surname\": \"" + surname + "\",\n" +
+                "  \"date_of_birth\": \"" + date + "\",\n" +
+                "  \"sex\": \"" + gender + "\",\n" +
+                "  \"email\": \"" + email + "\",\n" +
+                "  \"password\": \"" + pass + "\"\n" +
+                "}");
+        Request request = new Request.Builder()
+                .url("http://localhost:8000/user/reg/")
+                .post(body)
+                .build();
 
-            client.newCall(request).enqueue(new okhttp3.Callback() {
+        client.newCall(request).enqueue(new okhttp3.Callback() {
 
-                @Override
-                public void onFailure(@NonNull okhttp3.Call call, IOException e) {
-                    runOnUiThread(new Runnable() {
-                        public void run() {
-                            Toast.makeText(MainMenu.this, String.valueOf(e), Toast.LENGTH_SHORT).show();
-                            System.out.println(String.valueOf(e));
-                        }
-                    });
-                }
+            @Override
+            public void onFailure(@NonNull okhttp3.Call call, IOException e) {
+                runOnUiThread(new Runnable() {
+                    public void run() {
+                        Toast.makeText(MainMenu.this, String.valueOf(e), Toast.LENGTH_SHORT).show();
+                        System.out.println(String.valueOf(e));
+                    }
+                });
+            }
 
-                @Override
-                public void onResponse(@NonNull okhttp3.Call call, @NonNull okhttp3.Response response) throws IOException {
-                    assert response.body() != null;
-                    String body = response.body().string();
-                    // Inside your background thread or callback method:
-                    runOnUiThread(new Runnable() {
-                        public void run() {
-                            Toast.makeText(MainMenu.this, body, Toast.LENGTH_LONG).show();
-                            tokenUserVinogradov = body;
-                            System.out.println(body);
-                        }
-                    });
-                }
-            });
+            @Override
+            public void onResponse(@NonNull okhttp3.Call call, @NonNull okhttp3.Response response) throws IOException {
+                assert response.body() != null;
+                String body = response.body().string();
+                // Inside your background thread or callback method:
+                runOnUiThread(new Runnable() {
+                    public void run() {
+                        Toast.makeText(MainMenu.this, body, Toast.LENGTH_LONG).show();
+                        responseData = body;
+                    }
+                });
+            }
+        });
+        try {
+            // 1. Парсим строку в JSON объект
+            JSONObject jsonObject = new JSONObject(responseData);
+
+            // 2. Достаем значение по ключу "token"
+            final String token = jsonObject.getString("token");
+            editor.putString("user_token", token);
+            editor.apply();
+
+        } catch (JSONException e) {
+            throw new RuntimeException(e);
+        }
+        Intent intent = new Intent(MainMenu.this, LogInActivity.class);
+        startActivity(intent);
+    }
 
     }
-}
