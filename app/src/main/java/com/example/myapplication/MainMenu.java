@@ -30,7 +30,7 @@ import okhttp3.Response;
 import okhttp3.ResponseBody;
 
 public class MainMenu extends AppCompatActivity {
-    private SharedPreferences sharedPref;
+    private SharedPreferences prefs ;
 
     //SharedPreferences sharedPref = getSharedPreferences("Bank", Context.MODE_PRIVATE);
     //SharedPreferences.Editor editor = sharedPref.edit();
@@ -49,8 +49,7 @@ public class MainMenu extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main_menu);
-        Toast.makeText(MainMenu.this,"Error",Toast.LENGTH_LONG);
-
+        prefs = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
         emailEditText = findViewById(R.id.editTextTextEmailAddress);
         nameEditText = findViewById(R.id.editTextTextName);
         lastNameEditText = findViewById(R.id.editTextTextLastName);
@@ -61,8 +60,6 @@ public class MainMenu extends AppCompatActivity {
 
     }
     public void callPostReg(View v) {
-        SharedPreferences.Editor editor = sharedPref.edit();
-
         String email = emailEditText.getText().toString().trim();
         String name = nameEditText.getText().toString();
         String lastName = lastNameEditText.getText().toString();
@@ -84,7 +81,7 @@ public class MainMenu extends AppCompatActivity {
                 "  \"password\": \"" + pass + "\"\n" +
                 "}");
         Request request = new Request.Builder()
-                .url("http://localhost:8000/user/reg/")
+                .url("http://192.168.1.43:8000/user/reg/")
                 .post(body)
                 .build();
 
@@ -109,24 +106,33 @@ public class MainMenu extends AppCompatActivity {
                     public void run() {
                         Toast.makeText(MainMenu.this, body, Toast.LENGTH_LONG).show();
                         responseData = body;
+                        try {
+                            // 1. Парсим строку в JSON объект
+                            JSONObject jsonObject = new JSONObject(responseData);
+
+                            // 2. Достаем значение по ключу "token"
+                            final String token = jsonObject.getString("token");
+                            saveToken(token);
+                            Toast.makeText(MainMenu.this, token, Toast.LENGTH_LONG).show();
+
+
+                        } catch (JSONException e) {
+                            throw new RuntimeException(e);
+                        }
+                        Intent intent = new Intent(MainMenu.this, LogInActivity.class);
+                        startActivity(intent);
                     }
                 });
             }
         });
-        try {
-            // 1. Парсим строку в JSON объект
-            JSONObject jsonObject = new JSONObject(responseData);
-
-            // 2. Достаем значение по ключу "token"
-            final String token = jsonObject.getString("token");
-            editor.putString("user_token", token);
-            editor.apply();
-
-        } catch (JSONException e) {
-            throw new RuntimeException(e);
-        }
-        Intent intent = new Intent(MainMenu.this, LogInActivity.class);
-        startActivity(intent);
-    }
 
     }
+    public void saveToken(String token) {
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.putString("user_token", token);
+        // Также можно: putInt, putBoolean, putFloat, putLong
+        editor.apply();
+    }
+
+
+}
