@@ -16,6 +16,9 @@
         android:theme="@style/Theme.MyApplication"
         android:usesCleartextTraffic="true">
         <activity
+            android:name=".CartActivity"
+            android:exported="false" />
+        <activity
             android:name=".MainMenuAuth"
             android:exported="false" />
         <activity
